@@ -153,7 +153,7 @@ FACTTRACER_API_BASE_URL=http://localhost:8000
   - `src/components`: 화면 컴포넌트(검수, 주장, 팟캐스트, 알림)
   - `public/`: 정적 리소스, PWA 파일
   - `docs/`: 프론트엔드 설계/API 스펙
-- `docs/`: PRD/설계/점검 정책
+- `docs/`: 설계/계획/QA 문서 정렬 허브 (`docs/README.md` 참고)
 - `qa/`: QA 리포트, 스크린샷, 사운드 샘플
 
 ## 검증 및 테스트
@@ -203,8 +203,9 @@ python facttracer-backend/scripts/verify_podcast_remaining_work.py \
 
 ## 문서
 
-- 백엔드 전체 가이드: `facttracer-backend/README.md`
-- 프론트엔드 설계/QA: `facttracer-next/README.md`
+- 설계/문서 허브: `docs/README.md`
+- 백엔드 가이드: `facttracer-backend/README.md`
+- 프론트엔드 가이드: `facttracer-next/README.md`
 - 팟캐스트 시스템 설계: `docs/PODCAST_SYSTEM_DESIGN.md`
 - PRD(제품 요구사항): `PRD.md`
 - 운영/감사 기록: `docs/PODCAST_LOCAL_OPERATIONAL_VERIFICATION_2026-06-11.md`
