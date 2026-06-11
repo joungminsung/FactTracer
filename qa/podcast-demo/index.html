@@ -1,0 +1,3299 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FactTracer Podcast Demo</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+      :root {
+        --ink: #111827;
+        --muted: #667085;
+        --line: #dfe5ee;
+        --soft: #f4f7fb;
+        --paper: #ffffff;
+        --blue: #2563eb;
+        --blue-soft: #eff6ff;
+        --green: #059669;
+        --amber: #d97706;
+        --red: #dc2626;
+        --black: #0b1020;
+        --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+        --strong-shadow: 0 28px 90px rgba(15, 23, 42, 0.22);
+        --radius: 8px;
+        --font: Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+          "Noto Sans KR", "Segoe UI", sans-serif;
+      }
+
+      /* Final FactTracer-native pass: keep this after all demo rules. */
+      html,
+      body {
+        background: #ffffff;
+      }
+
+      body {
+        padding-bottom: 82px;
+        color: #111827;
+        background: #ffffff;
+      }
+
+      .topbar {
+        border-bottom: 1px solid #e5e7eb;
+        background: #ffffff;
+        backdrop-filter: none;
+      }
+
+      .topbar-inner {
+        display: block;
+        max-width: 1520px;
+        overflow: hidden;
+        padding: 0 20px;
+      }
+
+      .header-primary {
+        display: flex;
+        height: 66px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .brand {
+        align-items: baseline;
+        gap: 20px;
+      }
+
+      .brand-mark {
+        display: none;
+      }
+
+      .brand-title {
+        display: flex;
+        align-items: baseline;
+        gap: 20px;
+      }
+
+      .brand-title strong {
+        color: #030712;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 38px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+
+      .brand-title span {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        min-width: 0;
+      }
+
+      .text-action {
+        height: 36px;
+        border: 0;
+        background: transparent;
+        color: #111827;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .search {
+        width: min(360px, 42vw);
+        height: 38px;
+        border-radius: 3px;
+        background: #ffffff;
+      }
+
+      .nav {
+        justify-content: flex-start;
+        height: 44px;
+        gap: 28px;
+        overflow-x: auto;
+        color: #111827;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .nav a {
+        height: auto;
+        flex-shrink: 0;
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+        color: #111827;
+        white-space: nowrap;
+      }
+
+      .nav a.active {
+        background: transparent;
+        color: #1d4ed8;
+      }
+
+      .page {
+        max-width: 1520px;
+        padding: 24px 20px 50px;
+      }
+
+      .personal-stage,
+      .queue-panel,
+      .rank-panel,
+      .latest-panel,
+      .episode-card,
+      .wide-feature,
+      .category-tile,
+      .deck,
+      .transcript,
+      .drawer-rail {
+        border-radius: 3px;
+        box-shadow: none;
+      }
+
+      .personal-stage {
+        min-height: 392px;
+        background:
+          linear-gradient(90deg, rgba(255,255,255,0.98), rgba(255,255,255,0.93)),
+          url("../../facttracer-next/public/images/facttracer-home-reference.png") center / cover;
+      }
+
+      .stage-content {
+        min-height: 392px;
+        padding: 30px;
+      }
+
+      .stage-copy h1 {
+        font-size: 39px;
+        line-height: 1.16;
+        letter-spacing: -0.02em;
+      }
+
+      .stage-copy p {
+        color: #374151;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .primary-button,
+      .secondary-button,
+      .setting-chip,
+      .drawer-toggle {
+        border-radius: 3px;
+        box-shadow: none;
+      }
+
+      .primary-button {
+        min-height: 40px;
+        padding: 0 15px;
+      }
+
+      .secondary-button {
+        min-height: 40px;
+      }
+
+      .tab {
+        border-radius: 3px;
+      }
+
+      .hero-cover,
+      .cover img,
+      .queue-item img,
+      .latest-row img,
+      .mini-info img {
+        border-radius: 2px;
+      }
+
+      body.player-open .scrim {
+        background: rgba(17, 24, 39, 0.18);
+      }
+
+      .player-drawer {
+        top: 0;
+        right: 0;
+        bottom: 82px;
+        left: 0;
+        height: auto;
+        min-height: 0;
+        border-right: 0;
+        border-left: 0;
+        border-radius: 0;
+        background: #ffffff;
+        box-shadow: none;
+        transform: translateY(calc(100% + 90px));
+      }
+
+      body.player-open .player-drawer {
+        transform: translateY(0);
+      }
+
+      .drawer-grip {
+        height: 14px;
+      }
+
+      .drawer-grip span {
+        width: 52px;
+        height: 4px;
+      }
+
+      .drawer-layout {
+        height: calc(100% - 14px);
+        padding: 0 20px 18px;
+      }
+
+      .mini-player {
+        border-top: 1px solid #d1d5db;
+        background: #ffffff;
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+
+      .mini-inner {
+        max-width: 1520px;
+        min-height: 78px;
+        padding: 9px 20px;
+      }
+
+      @media (min-width: 640px) {
+        .topbar-inner,
+        .page,
+        .mini-inner {
+          padding-right: 28px;
+          padding-left: 28px;
+        }
+
+        .drawer-layout {
+          padding-right: 28px;
+          padding-left: 28px;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .topbar-inner,
+        .page,
+        .mini-inner {
+          padding-right: 36px;
+          padding-left: 36px;
+        }
+
+        .drawer-layout {
+          padding-right: 36px;
+          padding-left: 36px;
+        }
+      }
+
+      @media (max-width: 760px) {
+        body {
+          padding-bottom: 98px;
+        }
+
+        .topbar-inner {
+          padding-right: 16px;
+          padding-left: 16px;
+        }
+
+        .header-primary {
+          height: auto;
+          min-height: 62px;
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 8px;
+          padding: 12px 0 8px;
+        }
+
+        .brand-title {
+          display: grid;
+          gap: 3px;
+        }
+
+        .brand-title strong {
+          font-size: 30px;
+        }
+
+        .brand-title span {
+          font-size: 12px;
+        }
+
+        .header-actions {
+          width: 100%;
+        }
+
+        .search {
+          width: 100%;
+        }
+
+        .text-action {
+          display: none;
+        }
+
+        .nav {
+          height: 40px;
+          gap: 20px;
+        }
+
+        .page {
+          padding-right: 16px;
+          padding-left: 16px;
+        }
+
+        .player-drawer {
+          top: 0;
+          bottom: 96px;
+          height: auto;
+          border-radius: 0;
+        }
+
+        .drawer-layout {
+          padding-right: 12px;
+          padding-left: 12px;
+        }
+
+        .mini-inner {
+          padding-right: 12px;
+          padding-left: 12px;
+        }
+      }
+
+      /* FactTracer production alignment overrides */
+      html,
+      body {
+        background: #ffffff;
+      }
+
+      body {
+        padding-bottom: 82px;
+        color: #111827;
+        background: #ffffff;
+      }
+
+      .topbar {
+        border-bottom: 1px solid #e5e7eb;
+        background: #ffffff;
+        backdrop-filter: none;
+      }
+
+      .topbar-inner {
+        display: block;
+        max-width: 1520px;
+        overflow: hidden;
+        padding: 0 20px;
+      }
+
+      .header-primary {
+        display: flex;
+        height: 66px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .brand {
+        align-items: baseline;
+        gap: 20px;
+      }
+
+      .brand-mark {
+        display: none;
+      }
+
+      .brand-title {
+        display: flex;
+        align-items: baseline;
+        gap: 20px;
+      }
+
+      .brand-title strong {
+        color: #030712;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 38px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+
+      .brand-title span {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        min-width: 0;
+      }
+
+      .text-action {
+        height: 36px;
+        border: 0;
+        background: transparent;
+        color: #111827;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .search {
+        width: min(360px, 42vw);
+        height: 38px;
+        border-radius: 3px;
+        background: #ffffff;
+      }
+
+      .nav {
+        justify-content: flex-start;
+        height: 44px;
+        gap: 28px;
+        overflow-x: auto;
+        color: #111827;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .nav a {
+        height: auto;
+        flex-shrink: 0;
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+        color: #111827;
+        white-space: nowrap;
+      }
+
+      .nav a.active {
+        background: transparent;
+        color: #1d4ed8;
+      }
+
+      .page {
+        max-width: 1520px;
+        padding: 24px 20px 50px;
+      }
+
+      .personal-stage,
+      .queue-panel,
+      .rank-panel,
+      .latest-panel,
+      .episode-card,
+      .wide-feature,
+      .category-tile,
+      .deck,
+      .transcript,
+      .drawer-rail {
+        border-radius: 3px;
+        box-shadow: none;
+      }
+
+      .personal-stage {
+        min-height: 392px;
+        background:
+          linear-gradient(90deg, rgba(255,255,255,0.98), rgba(255,255,255,0.93)),
+          url("../../facttracer-next/public/images/facttracer-home-reference.png") center / cover;
+      }
+
+      .stage-content {
+        min-height: 392px;
+        padding: 30px;
+      }
+
+      .stage-copy h1 {
+        font-size: 39px;
+        line-height: 1.16;
+        letter-spacing: -0.02em;
+      }
+
+      .stage-copy p {
+        color: #374151;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .primary-button,
+      .secondary-button,
+      .setting-chip,
+      .back-button,
+      .drawer-toggle {
+        border-radius: 3px;
+        box-shadow: none;
+      }
+
+      .primary-button {
+        min-height: 40px;
+        padding: 0 15px;
+      }
+
+      .secondary-button {
+        min-height: 40px;
+      }
+
+      .tab {
+        border-radius: 3px;
+      }
+
+      .hero-cover,
+      .cover img,
+      .queue-item img,
+      .latest-row img,
+      .mini-info img {
+        border-radius: 2px;
+      }
+
+      .scrim {
+        background: rgba(255,255,255,0);
+      }
+
+      body.player-open .scrim {
+        background: rgba(17, 24, 39, 0.18);
+      }
+
+      .player-drawer {
+        top: 0;
+        right: 0;
+        bottom: 82px;
+        left: 0;
+        height: auto;
+        min-height: 0;
+        border-right: 0;
+        border-left: 0;
+        border-radius: 0;
+        background: #ffffff;
+        box-shadow: none;
+        transform: translateY(calc(100% + 90px));
+      }
+
+      .drawer-grip {
+        height: 14px;
+      }
+
+      .drawer-grip span {
+        width: 52px;
+        height: 4px;
+      }
+
+      .drawer-layout {
+        height: calc(100% - 14px);
+        padding: 0 20px 18px;
+      }
+
+      .mini-player {
+        border-top: 1px solid #d1d5db;
+        background: #ffffff;
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+
+      .mini-inner {
+        max-width: 1520px;
+        min-height: 78px;
+        padding: 9px 20px;
+      }
+
+      .round-control {
+        border-radius: 50%;
+      }
+
+      @media (min-width: 640px) {
+        .topbar-inner,
+        .page,
+        .mini-inner {
+          padding-right: 28px;
+          padding-left: 28px;
+        }
+
+        .drawer-layout {
+          padding-right: 28px;
+          padding-left: 28px;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .topbar-inner,
+        .page,
+        .mini-inner {
+          padding-right: 36px;
+          padding-left: 36px;
+        }
+
+        .drawer-layout {
+          padding-right: 36px;
+          padding-left: 36px;
+        }
+      }
+
+      @media (max-width: 760px) {
+        body {
+          padding-bottom: 98px;
+        }
+
+        .topbar-inner {
+          padding-right: 16px;
+          padding-left: 16px;
+        }
+
+        .header-primary {
+          height: auto;
+          min-height: 62px;
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 8px;
+          padding: 12px 0 8px;
+        }
+
+        .brand-title {
+          display: grid;
+          gap: 3px;
+        }
+
+        .brand-title strong {
+          font-size: 30px;
+        }
+
+        .brand-title span {
+          font-size: 12px;
+        }
+
+        .header-actions {
+          width: 100%;
+        }
+
+        .search {
+          width: 100%;
+        }
+
+        .text-action {
+          display: none;
+        }
+
+        .nav {
+          height: 40px;
+          gap: 20px;
+        }
+
+        .page {
+          padding-right: 16px;
+          padding-left: 16px;
+        }
+
+        .player-drawer {
+          top: 0;
+          bottom: 96px;
+          height: auto;
+          border-radius: 0;
+        }
+
+        .drawer-layout {
+          padding-right: 12px;
+          padding-left: 12px;
+        }
+
+        .mini-inner {
+          padding-right: 12px;
+          padding-left: 12px;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 320px;
+        background: var(--soft);
+      }
+
+      body {
+        margin: 0;
+        padding-bottom: 92px;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 62% 0%, rgba(37, 99, 235, 0.08), transparent 34%),
+          var(--soft);
+        font-family: var(--font);
+        letter-spacing: 0;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      img {
+        display: block;
+        width: 100%;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      h1,
+      h2,
+      h3,
+      p,
+      button,
+      span {
+        overflow-wrap: anywhere;
+        word-break: keep-all;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        border-bottom: 1px solid rgba(229, 231, 235, 0.95);
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(18px);
+      }
+
+      .topbar-inner {
+        display: grid;
+        grid-template-columns: minmax(200px, 1fr) minmax(260px, 460px) auto;
+        gap: 18px;
+        align-items: center;
+        max-width: 1560px;
+        margin: 0 auto;
+        padding: 14px 28px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border-radius: 7px;
+        color: white;
+        background: var(--black);
+        font-size: 14px;
+        font-weight: 950;
+      }
+
+      .brand-title {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .brand-title strong {
+        font-size: 15px;
+        line-height: 1.2;
+      }
+
+      .brand-title span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .search {
+        display: flex;
+        align-items: center;
+        height: 42px;
+        min-width: 0;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #f9fafb;
+        color: var(--muted);
+        padding: 0 13px;
+      }
+
+      .search input {
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--ink);
+        font-size: 14px;
+      }
+
+      .search i {
+        width: 18px;
+        height: 18px;
+        margin-right: 8px;
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        justify-content: flex-end;
+      }
+
+      .nav a,
+      .icon-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 38px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 850;
+      }
+
+      .nav a {
+        padding: 0 12px;
+      }
+
+      .nav a.active {
+        color: var(--blue);
+        background: var(--blue-soft);
+      }
+
+      .icon-button {
+        width: 38px;
+      }
+
+      .page {
+        max-width: 1560px;
+        margin: 0 auto;
+        padding: 26px 28px 56px;
+      }
+
+      .home-stage {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+        gap: 20px;
+        align-items: stretch;
+      }
+
+      .personal-stage {
+        position: relative;
+        min-height: 430px;
+        overflow: hidden;
+        border: 1px solid #d9dee8;
+        border-radius: var(--radius);
+        background:
+          linear-gradient(115deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92) 58%, rgba(255,255,255,0.58)),
+          url("../../facttracer-next/public/images/facttracer-home-reference.png") center / cover;
+        box-shadow: var(--shadow);
+      }
+
+      .stage-content {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 272px;
+        gap: 24px;
+        min-height: 430px;
+        padding: 34px;
+      }
+
+      .stage-copy {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .kicker {
+        color: var(--blue);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .stage-copy h1 {
+        max-width: 800px;
+        margin: 12px 0 0;
+        font-size: 44px;
+        line-height: 1.12;
+        font-weight: 950;
+      }
+
+      .stage-copy p {
+        max-width: 720px;
+        margin: 16px 0 0;
+        color: #4b5563;
+        font-size: 17px;
+        line-height: 1.7;
+        font-weight: 680;
+      }
+
+      .stage-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 24px;
+      }
+
+      .primary-button,
+      .secondary-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .primary-button {
+        border: 0;
+        background: var(--black);
+        color: white;
+        padding: 0 18px;
+        box-shadow: 0 14px 30px rgba(11, 16, 32, 0.18);
+      }
+
+      .secondary-button {
+        border: 1px solid #cdd5e1;
+        background: white;
+        color: var(--ink);
+        padding: 0 16px;
+      }
+
+      .primary-button i,
+      .secondary-button i {
+        width: 18px;
+        height: 18px;
+        margin-right: 8px;
+      }
+
+      .signal-strip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1px;
+        max-width: 680px;
+        margin-top: 28px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--line);
+      }
+
+      .signal {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 14px;
+      }
+
+      .signal strong {
+        display: block;
+        color: var(--ink);
+        font-size: 18px;
+        line-height: 1.2;
+      }
+
+      .signal span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .hero-cover {
+        align-self: center;
+        overflow: hidden;
+        border: 1px solid rgba(17, 24, 39, 0.12);
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+      }
+
+      .hero-cover img {
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+      }
+
+      .episode-face {
+        border-top: 1px solid var(--line);
+        background: white;
+        padding: 14px;
+      }
+
+      .episode-face strong {
+        display: block;
+        font-size: 15px;
+        line-height: 1.45;
+      }
+
+      .episode-face span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .queue-panel,
+      .rank-panel,
+      .latest-panel {
+        border: 1px solid #d9dee8;
+        border-radius: var(--radius);
+        background: white;
+        box-shadow: var(--shadow);
+      }
+
+      .queue-panel {
+        min-height: 430px;
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 62px;
+        border-bottom: 1px solid var(--line);
+        padding: 0 18px;
+      }
+
+      .panel-head h2 {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.2;
+      }
+
+      .panel-head span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .queue-list {
+        display: grid;
+      }
+
+      .queue-item {
+        display: grid;
+        grid-template-columns: 56px minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        min-height: 92px;
+        border: 0;
+        border-bottom: 1px solid #eef2f7;
+        background: white;
+        padding: 13px 16px;
+        text-align: left;
+      }
+
+      .queue-item:hover,
+      .queue-item.active {
+        background: #f8fbff;
+      }
+
+      .queue-item img {
+        width: 56px;
+        height: 56px;
+        border-radius: 6px;
+        object-fit: cover;
+      }
+
+      .queue-item strong {
+        display: block;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .queue-item span span,
+      .rank-row span span,
+      .latest-row span span {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 760;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        margin: 26px 0 20px;
+        padding-bottom: 2px;
+      }
+
+      .tab {
+        flex: 0 0 auto;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+        color: #374151;
+        padding: 0 14px;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .tab.active {
+        border-color: var(--black);
+        background: var(--black);
+        color: white;
+      }
+
+      .section {
+        margin-top: 28px;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .section-header h2 {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.2;
+        font-weight: 950;
+      }
+
+      .section-header p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+        font-weight: 760;
+      }
+
+      .section-link {
+        display: inline-flex;
+        align-items: center;
+        color: var(--blue);
+        font-size: 13px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .section-link i {
+        width: 16px;
+        height: 16px;
+        margin-left: 4px;
+      }
+
+      .rail {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(220px, 1fr));
+        gap: 14px;
+      }
+
+      .episode-card {
+        overflow: hidden;
+        border: 1px solid #dfe5ee;
+        border-radius: var(--radius);
+        background: white;
+      }
+
+      .cover {
+        position: relative;
+        background: #dbe3ef;
+      }
+
+      .cover img {
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+      }
+
+      .play-chip {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border: 0;
+        border-radius: 50%;
+        background: white;
+        color: var(--black);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+      }
+
+      .episode-body {
+        padding: 14px;
+      }
+
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        min-height: 24px;
+        margin-bottom: 10px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        border-radius: 6px;
+        background: #f3f4f6;
+        color: #374151;
+        padding: 0 7px;
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .badge.official {
+        background: #ecfdf5;
+        color: var(--green);
+      }
+
+      .badge.review {
+        background: #fff7ed;
+        color: var(--amber);
+      }
+
+      .badge.changed {
+        background: #fef2f2;
+        color: var(--red);
+      }
+
+      .badge.special {
+        background: var(--blue-soft);
+        color: var(--blue);
+      }
+
+      .episode-card h3 {
+        min-height: 48px;
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.45;
+        font-weight: 900;
+      }
+
+      .episode-card p {
+        min-height: 42px;
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+        font-weight: 680;
+      }
+
+      .episode-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .wide-feature {
+        display: grid;
+        grid-template-columns: 250px minmax(0, 1fr);
+        gap: 0;
+        min-height: 250px;
+        overflow: hidden;
+        border: 1px solid #dfe5ee;
+        border-radius: var(--radius);
+        background: white;
+      }
+
+      .wide-feature img {
+        height: 100%;
+        min-height: 250px;
+        object-fit: cover;
+      }
+
+      .wide-feature-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 22px;
+      }
+
+      .wide-feature h3 {
+        margin: 0;
+        font-size: 26px;
+        line-height: 1.25;
+        font-weight: 950;
+      }
+
+      .wide-feature p {
+        max-width: 620px;
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.65;
+        font-weight: 720;
+      }
+
+      .rank-list {
+        display: grid;
+      }
+
+      .rank-row {
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        min-height: 78px;
+        border-bottom: 1px solid #eef2f7;
+        padding: 12px 14px;
+      }
+
+      .rank-row:last-child {
+        border-bottom: 0;
+      }
+
+      .rank-num {
+        color: var(--blue);
+        font-size: 22px;
+        font-weight: 950;
+        line-height: 1;
+      }
+
+      .rank-row strong {
+        display: block;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .rank-row button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        background: white;
+        color: var(--ink);
+      }
+
+      .latest-panel {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+      }
+
+      .latest-row {
+        display: grid;
+        grid-template-columns: 68px minmax(0, 1fr);
+        gap: 12px;
+        align-items: center;
+        min-height: 80px;
+      }
+
+      .latest-row img {
+        width: 68px;
+        height: 56px;
+        border-radius: 6px;
+        object-fit: cover;
+      }
+
+      .latest-row strong {
+        display: block;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .category-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .category-tile {
+        display: flex;
+        min-height: 128px;
+        flex-direction: column;
+        justify-content: space-between;
+        border: 1px solid #dfe5ee;
+        border-radius: var(--radius);
+        background: white;
+        padding: 15px;
+      }
+
+      .category-tile strong {
+        font-size: 18px;
+        line-height: 1.2;
+      }
+
+      .category-tile span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 70;
+        pointer-events: none;
+        background: rgba(15, 23, 42, 0);
+        transition: background 220ms ease;
+      }
+
+      body.player-open .scrim {
+        pointer-events: auto;
+        background: rgba(15, 23, 42, 0.22);
+      }
+
+      .player-drawer {
+        position: fixed;
+        right: 18px;
+        bottom: 82px;
+        left: 18px;
+        z-index: 80;
+        height: min(76vh, 780px);
+        min-height: 560px;
+        overflow: hidden;
+        border: 1px solid rgba(203, 213, 225, 0.98);
+        border-radius: 12px 12px 8px 8px;
+        background:
+          radial-gradient(circle at 10% 0%, rgba(37, 99, 235, 0.13), transparent 30%),
+          rgba(255, 255, 255, 0.98);
+        box-shadow: var(--strong-shadow);
+        transform: translateY(calc(100% + 120px));
+        transition: transform 260ms ease;
+      }
+
+      body.player-open .player-drawer {
+        transform: translateY(0);
+      }
+
+      .drawer-grip {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 24px;
+      }
+
+      .drawer-grip span {
+        width: 54px;
+        height: 5px;
+        border-radius: 99px;
+        background: #cbd5e1;
+      }
+
+      .drawer-layout {
+        display: grid;
+        grid-template-columns: minmax(260px, 390px) minmax(0, 1fr) minmax(300px, 380px);
+        gap: 18px;
+        height: calc(100% - 24px);
+        padding: 0 18px 18px;
+      }
+
+      .deck,
+      .transcript,
+      .drawer-rail {
+        min-height: 0;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+      }
+
+      .deck {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        overflow: hidden;
+      }
+
+      .episode-art {
+        position: relative;
+        background: #dbe3ef;
+      }
+
+      .episode-art img {
+        aspect-ratio: 16 / 12;
+        object-fit: cover;
+      }
+
+      .art-copy {
+        position: absolute;
+        inset: auto 0 0;
+        color: white;
+        background: linear-gradient(180deg, transparent, rgba(11, 16, 32, 0.84));
+        padding: 18px;
+      }
+
+      .art-copy .badge {
+        background: rgba(255, 255, 255, 0.92);
+      }
+
+      .art-copy h2 {
+        margin: 10px 0 0;
+        font-size: 25px;
+        line-height: 1.24;
+        font-weight: 950;
+      }
+
+      .art-copy p {
+        margin: 8px 0 0;
+        color: rgba(255, 255, 255, 0.86);
+        font-size: 13px;
+        line-height: 1.48;
+        font-weight: 760;
+      }
+
+      .deck-body {
+        display: grid;
+        align-content: start;
+        gap: 16px;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 16px;
+      }
+
+      .setting-block {
+        border-top: 1px solid #eef2f7;
+        padding-top: 14px;
+      }
+
+      .setting-block:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      .setting-block h3 {
+        margin: 0 0 10px;
+        font-size: 14px;
+      }
+
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .setting-chip {
+        min-height: 34px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+        color: #374151;
+        padding: 0 10px;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .setting-chip.active {
+        border-color: var(--black);
+        background: var(--black);
+        color: white;
+      }
+
+      .fact-summary {
+        display: grid;
+        gap: 9px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .fact-summary li {
+        display: grid;
+        grid-template-columns: 8px minmax(0, 1fr);
+        gap: 9px;
+        color: #4b5563;
+        font-size: 13px;
+        line-height: 1.55;
+        font-weight: 720;
+      }
+
+      .fact-summary li::before {
+        width: 8px;
+        height: 8px;
+        margin-top: 6px;
+        border-radius: 50%;
+        background: var(--blue);
+        content: "";
+      }
+
+      .transcript {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        overflow: hidden;
+      }
+
+      .transcript-head,
+      .rail-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        border-bottom: 1px solid var(--line);
+        padding: 16px;
+      }
+
+      .transcript-head h2,
+      .rail-head h2 {
+        margin: 0;
+        font-size: 20px;
+      }
+
+      .transcript-head p,
+      .rail-head p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .script-scroll {
+        min-height: 0;
+        overflow-y: auto;
+        padding: 8px 16px 16px;
+      }
+
+      .line {
+        display: grid;
+        grid-template-columns: 100px minmax(0, 1fr);
+        gap: 16px;
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid #eef2f7;
+        background: transparent;
+        color: #4b5563;
+        padding: 15px 0;
+        text-align: left;
+      }
+
+      .line.active {
+        border-left: 3px solid var(--blue);
+        background: #f8fbff;
+        color: var(--ink);
+        padding-left: 13px;
+      }
+
+      .line-speaker strong {
+        display: block;
+        color: var(--ink);
+        font-size: 13px;
+      }
+
+      .line-speaker span {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .line-text {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.68;
+        font-weight: 760;
+      }
+
+      .line.active .line-text {
+        font-size: 19px;
+        font-weight: 920;
+      }
+
+      .drawer-rail {
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 0.9fr);
+        overflow: hidden;
+      }
+
+      .rail-section {
+        min-height: 0;
+        overflow: hidden;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .rail-section:last-child {
+        border-bottom: 0;
+      }
+
+      .rail-list,
+      .source-list {
+        min-height: 0;
+        overflow-y: auto;
+      }
+
+      .source-list {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+      }
+
+      .source-item {
+        border: 1px solid #eef2f7;
+        border-radius: 8px;
+        background: #f8fafc;
+        padding: 12px;
+      }
+
+      .source-item strong {
+        display: block;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .source-item span {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .mini-player {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 90;
+        border-top: 1px solid rgba(17, 24, 39, 0.18);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 -18px 42px rgba(15, 23, 42, 0.12);
+        backdrop-filter: blur(18px);
+      }
+
+      .mini-progress {
+        height: 3px;
+        background: #e5e7eb;
+      }
+
+      .mini-fill {
+        display: block;
+        width: 0%;
+        height: 100%;
+        background: var(--blue);
+      }
+
+      .mini-inner {
+        display: grid;
+        grid-template-columns: minmax(260px, 1fr) minmax(220px, 0.7fr) minmax(260px, 1fr);
+        gap: 16px;
+        align-items: center;
+        max-width: 1560px;
+        min-height: 78px;
+        margin: 0 auto;
+        padding: 10px 28px;
+      }
+
+      .mini-info {
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr);
+        gap: 12px;
+        align-items: center;
+        min-width: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        padding: 0;
+        text-align: left;
+      }
+
+      .mini-info img {
+        width: 52px;
+        height: 52px;
+        border-radius: 6px;
+        object-fit: cover;
+      }
+
+      .mini-info strong,
+      .mini-info span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .mini-info strong {
+        font-size: 14px;
+      }
+
+      .mini-info span {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .mini-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .round-control {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        background: white;
+        color: var(--ink);
+      }
+
+      .round-control.main {
+        width: 50px;
+        height: 50px;
+        border-color: var(--black);
+        background: var(--black);
+        color: white;
+      }
+
+      .mini-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .mini-time {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .drawer-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        background: white;
+        color: var(--ink);
+      }
+
+      body.player-open .drawer-toggle i {
+        transform: rotate(180deg);
+      }
+
+      @media (max-width: 1180px) {
+        .topbar-inner {
+          grid-template-columns: minmax(180px, 1fr) auto;
+        }
+
+        .search {
+          display: none;
+        }
+
+        .home-stage,
+        .content-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .rail,
+        .category-grid {
+          grid-template-columns: repeat(2, minmax(220px, 1fr));
+        }
+
+        .drawer-layout {
+          grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+        }
+
+        .drawer-rail {
+          display: none;
+        }
+
+        .mini-inner {
+          grid-template-columns: minmax(240px, 1fr) auto auto;
+        }
+
+        .mini-actions .badge {
+          display: none;
+        }
+      }
+
+      @media (max-width: 760px) {
+        body {
+          padding-bottom: 94px;
+        }
+
+        .topbar-inner {
+          grid-template-columns: 1fr;
+          gap: 10px;
+          padding: 12px 16px;
+        }
+
+        .nav {
+          justify-content: flex-start;
+          overflow-x: auto;
+        }
+
+        .page {
+          padding: 18px 16px 42px;
+        }
+
+        .stage-content {
+          grid-template-columns: 1fr;
+          min-height: auto;
+          padding: 22px;
+        }
+
+        .stage-copy h1 {
+          font-size: 31px;
+        }
+
+        .stage-copy p {
+          font-size: 15px;
+        }
+
+        .signal-strip {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-cover {
+          display: none;
+        }
+
+        .rail,
+        .category-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .wide-feature {
+          grid-template-columns: 1fr;
+        }
+
+        .wide-feature img {
+          min-height: 190px;
+          max-height: 230px;
+        }
+
+        .wide-feature h3 {
+          font-size: 22px;
+        }
+
+        .section-header {
+          align-items: start;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .player-drawer {
+          right: 0;
+          bottom: 88px;
+          left: 0;
+          height: calc(100vh - 110px);
+          min-height: 0;
+          border-right: 0;
+          border-left: 0;
+          border-radius: 14px 14px 0 0;
+        }
+
+        .drawer-layout {
+          grid-template-columns: 1fr;
+          overflow-y: auto;
+          padding: 0 12px 14px;
+        }
+
+        .deck,
+        .transcript {
+          overflow: visible;
+        }
+
+        .episode-art img {
+          aspect-ratio: 16 / 9;
+        }
+
+        .art-copy h2 {
+          font-size: 22px;
+        }
+
+        .line {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        .line.active .line-text {
+          font-size: 18px;
+        }
+
+        .mini-inner {
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 10px;
+          min-height: 84px;
+          padding: 9px 12px;
+        }
+
+        .mini-controls {
+          order: 3;
+          grid-column: 1 / -1;
+          justify-content: center;
+          margin-top: -4px;
+        }
+
+        .mini-actions {
+          gap: 6px;
+        }
+
+        .mini-time {
+          display: none;
+        }
+      }
+
+      /* Final FactTracer-native pass: intentionally last. */
+      html,
+      body {
+        background: #ffffff;
+      }
+
+      body {
+        padding-bottom: 82px;
+        color: #111827;
+        background: #ffffff;
+      }
+
+      .topbar {
+        border-bottom: 1px solid #e5e7eb;
+        background: #ffffff;
+        backdrop-filter: none;
+      }
+
+      .topbar-inner {
+        display: block;
+        max-width: 1520px;
+        overflow: hidden;
+        padding: 0 20px;
+      }
+
+      .header-primary {
+        display: flex;
+        height: 66px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .brand {
+        align-items: baseline;
+        gap: 20px;
+      }
+
+      .brand-mark {
+        display: none;
+      }
+
+      .brand-title {
+        display: flex;
+        align-items: baseline;
+        gap: 20px;
+      }
+
+      .brand-title strong {
+        color: #030712;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 38px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+
+      .brand-title span {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        min-width: 0;
+      }
+
+      .text-action {
+        height: 36px;
+        border: 0;
+        background: transparent;
+        color: #111827;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .search {
+        display: flex;
+        width: min(360px, 42vw);
+        height: 38px;
+        border-radius: 3px;
+        background: #ffffff;
+      }
+
+      .nav {
+        justify-content: flex-start;
+        height: 44px;
+        gap: 28px;
+        overflow-x: auto;
+        color: #111827;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .nav a {
+        height: auto;
+        flex-shrink: 0;
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+        color: #111827;
+        white-space: nowrap;
+      }
+
+      .nav a.active {
+        background: transparent;
+        color: #1d4ed8;
+      }
+
+      .page {
+        max-width: 1520px;
+        padding: 24px 20px 50px;
+      }
+
+      .personal-stage,
+      .queue-panel,
+      .rank-panel,
+      .latest-panel,
+      .episode-card,
+      .wide-feature,
+      .category-tile,
+      .deck,
+      .transcript,
+      .drawer-rail {
+        border-radius: 3px;
+        box-shadow: none;
+      }
+
+      .personal-stage {
+        min-height: 392px;
+        background:
+          linear-gradient(90deg, rgba(255,255,255,0.98), rgba(255,255,255,0.93)),
+          url("../../facttracer-next/public/images/facttracer-home-reference.png") center / cover;
+      }
+
+      .stage-content {
+        min-height: 392px;
+        padding: 30px;
+      }
+
+      .stage-copy h1 {
+        font-size: 39px;
+        line-height: 1.16;
+        letter-spacing: -0.02em;
+      }
+
+      .stage-copy p {
+        color: #374151;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .primary-button,
+      .secondary-button,
+      .setting-chip,
+      .drawer-toggle {
+        border-radius: 3px;
+        box-shadow: none;
+      }
+
+      .primary-button {
+        min-height: 40px;
+        padding: 0 15px;
+      }
+
+      .secondary-button {
+        min-height: 40px;
+      }
+
+      .tab {
+        border-radius: 3px;
+      }
+
+      .hero-cover,
+      .cover img,
+      .queue-item img,
+      .latest-row img,
+      .mini-info img {
+        border-radius: 2px;
+      }
+
+      body.player-open .scrim {
+        background: rgba(17, 24, 39, 0.18);
+      }
+
+      .player-drawer {
+        top: 0;
+        right: 0;
+        bottom: 82px;
+        left: 0;
+        height: auto;
+        min-height: 0;
+        border-right: 0;
+        border-left: 0;
+        border-radius: 0;
+        background: #ffffff;
+        box-shadow: none;
+        transform: translateY(calc(100% + 90px));
+      }
+
+      body.player-open .player-drawer {
+        transform: translateY(0);
+      }
+
+      .drawer-grip {
+        height: 14px;
+      }
+
+      .drawer-grip span {
+        width: 52px;
+        height: 4px;
+      }
+
+      .drawer-layout {
+        height: calc(100% - 14px);
+        padding: 0 20px 18px;
+      }
+
+      .mini-player {
+        border-top: 1px solid #d1d5db;
+        background: #ffffff;
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+
+      .mini-inner {
+        max-width: 1520px;
+        min-height: 78px;
+        padding: 9px 20px;
+      }
+
+      @media (min-width: 640px) {
+        .topbar-inner,
+        .page,
+        .mini-inner {
+          padding-right: 28px;
+          padding-left: 28px;
+        }
+
+        .drawer-layout {
+          padding-right: 28px;
+          padding-left: 28px;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .topbar-inner,
+        .page,
+        .mini-inner {
+          padding-right: 36px;
+          padding-left: 36px;
+        }
+
+        .drawer-layout {
+          padding-right: 36px;
+          padding-left: 36px;
+        }
+      }
+
+      @media (max-width: 760px) {
+        body {
+          padding-bottom: 98px;
+        }
+
+        .topbar-inner {
+          padding-right: 16px;
+          padding-left: 16px;
+        }
+
+        .header-primary {
+          height: auto;
+          min-height: 62px;
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 8px;
+          padding: 12px 0 8px;
+        }
+
+        .brand-title {
+          display: grid;
+          gap: 3px;
+        }
+
+        .brand-title strong {
+          font-size: 30px;
+        }
+
+        .brand-title span {
+          font-size: 12px;
+        }
+
+        .header-actions {
+          width: 100%;
+        }
+
+        .search {
+          width: 100%;
+        }
+
+        .text-action {
+          display: none;
+        }
+
+        .nav {
+          height: 40px;
+          gap: 20px;
+        }
+
+        .page {
+          padding-right: 16px;
+          padding-left: 16px;
+        }
+
+        .player-drawer {
+          top: 0;
+          bottom: 96px;
+          height: auto;
+          border-radius: 0;
+        }
+
+        .drawer-layout {
+          padding-right: 12px;
+          padding-left: 12px;
+        }
+
+        .mini-inner {
+          padding-right: 12px;
+          padding-left: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="header-primary">
+          <a class="brand" href="#">
+            <span class="brand-mark">FT</span>
+            <span class="brand-title">
+              <strong>FactTracer</strong>
+              <span>사건 흐름을 정리하고, 정확한 보도를 돕습니다</span>
+            </span>
+          </a>
+
+          <div class="header-actions">
+            <label class="search" aria-label="팟캐스트 검색">
+              <i data-lucide="search"></i>
+              <input type="search" placeholder="이슈, 카테고리, 브리핑 검색" />
+            </label>
+            <button class="text-action">로그인</button>
+          </div>
+        </div>
+
+        <nav class="nav" aria-label="주요 분야">
+          <a href="#">정치</a>
+          <a href="#">사회</a>
+          <a href="#">경제</a>
+          <a href="#">국제</a>
+          <a href="#">재난/환경</a>
+          <a href="#">과학/기술</a>
+          <a href="#">라이프</a>
+          <a href="#" class="active">팟캐스트</a>
+          <a href="#">제보/검증</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page">
+      <section class="home-stage" aria-label="개인화 팟캐스트 홈">
+        <div class="personal-stage">
+          <div class="stage-content">
+            <div class="stage-copy">
+              <div>
+                <div class="kicker">민서님을 위한 오늘의 팟캐스트</div>
+                <h1>오늘 들어야 할 뉴스가 18분 큐로 정리됐습니다</h1>
+                <p>
+                  홈에서는 듣고 싶은 에피소드를 고릅니다. 하단 재생바를 누르면
+                  대사, 출처, 다음 재생, 재생 설정이 아래에서 올라옵니다.
+                </p>
+                <div class="stage-actions">
+                  <button class="primary-button js-start" data-episode="daily" data-expand="true">
+                    <i data-lucide="play"></i>
+                    바로 듣기
+                  </button>
+                  <button class="secondary-button js-toggle-drawer">
+                    <i data-lucide="panel-bottom-open"></i>
+                    재생 상세 열기
+                  </button>
+                </div>
+              </div>
+
+              <div class="signal-strip" aria-label="오늘의 큐 요약">
+                <div class="signal">
+                  <strong>7개</strong>
+                  <span>추천 에피소드</span>
+                </div>
+                <div class="signal">
+                  <strong>3건</strong>
+                  <span>공식자료 업데이트</span>
+                </div>
+                <div class="signal">
+                  <strong>18분</strong>
+                  <span>예상 청취 시간</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="hero-cover">
+              <img src="../../facttracer-next/public/images/news/facttracer-news-9.png" alt="오늘의 18분 팩트 큐 커버" />
+              <div class="episode-face">
+                <strong>오늘의 18분 팩트 큐</strong>
+                <span>1인 브리핑 · 공식자료 포함 · 출처 24개</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="queue-panel" aria-label="다음 재생 큐">
+          <div class="panel-head">
+            <div>
+              <h2>다음 재생</h2>
+              <span>개인화 알고리즘 우선</span>
+            </div>
+            <button class="icon-button" aria-label="다음 재생 더보기">
+              <i data-lucide="more-horizontal"></i>
+            </button>
+          </div>
+          <div class="queue-list">
+            <button class="queue-item active js-start" data-episode="election" data-expand="true">
+              <img src="../../facttracer-next/public/images/news/facttracer-news-0.png" alt="선거구 조정 논란 커버" />
+              <span>
+                <strong>선거구 조정 논란, 오늘 바뀐 쟁점</strong>
+                <span>2인 대화 · 검증 중 · 8분</span>
+              </span>
+              <i data-lucide="play"></i>
+            </button>
+            <button class="queue-item js-start" data-episode="economy" data-expand="true">
+              <img src="../../facttracer-next/public/images/news/facttracer-news-1.png" alt="물가 지표 브리핑 커버" />
+              <span>
+                <strong>물가 지표와 체감 물가가 갈리는 이유</strong>
+                <span>3인 해설 · 공식자료 포함 · 12분</span>
+              </span>
+              <i data-lucide="play"></i>
+            </button>
+            <button class="queue-item js-start" data-episode="global" data-expand="true">
+              <img src="../../facttracer-next/public/images/news/facttracer-news-2.png" alt="해외 정상회의 커버" />
+              <span>
+                <strong>해외 정상회의 5분 정리</strong>
+                <span>1인 브리핑 · 출처 9개 · 5분</span>
+              </span>
+              <i data-lucide="play"></i>
+            </button>
+            <button class="queue-item js-start" data-episode="disaster" data-expand="true">
+              <img src="../../facttracer-next/public/images/news/facttracer-news-3.png" alt="재난 문자 업데이트 커버" />
+              <span>
+                <strong>재난 문자 이후 확인된 사실</strong>
+                <span>업데이트 알림형 · 수치 변경 · 4분</span>
+              </span>
+              <i data-lucide="play"></i>
+            </button>
+          </div>
+        </aside>
+      </section>
+
+      <div class="tabs" role="tablist" aria-label="팟캐스트 탐색 필터">
+        <button class="tab active">맞춤 추천</button>
+        <button class="tab">데일리</button>
+        <button class="tab">특집</button>
+        <button class="tab">정치</button>
+        <button class="tab">경제</button>
+        <button class="tab">해외</button>
+        <button class="tab">팩트체크 업데이트</button>
+      </div>
+
+      <section class="section">
+        <div class="section-header">
+          <div>
+            <h2>지금 민서님에게 맞는 브리핑</h2>
+            <p>최근 들은 주제와 저장한 이슈를 섞어 중복을 줄였습니다.</p>
+          </div>
+          <a class="section-link" href="#">전체 보기 <i data-lucide="chevron-right"></i></a>
+        </div>
+
+        <div class="rail">
+          <article class="episode-card">
+            <div class="cover">
+              <img src="../../facttracer-next/public/images/news/facttracer-news-4.png" alt="국회 표결 브리핑 커버" />
+              <button class="play-chip js-start" aria-label="국회 표결 브리핑 재생" data-episode="assembly" data-expand="false">
+                <i data-lucide="play"></i>
+              </button>
+            </div>
+            <div class="episode-body">
+              <div class="meta-row">
+                <span class="badge review">검증 중</span>
+                <span class="badge">2인 대화</span>
+                <span class="badge">9분</span>
+              </div>
+              <h3>국회 표결 이후 남은 세 가지 쟁점</h3>
+              <p>찬반 주장보다 표결 전후로 바뀐 절차와 근거를 먼저 정리합니다.</p>
+              <div class="episode-footer">
+                <span>쟁점 대화</span>
+                <span>출처 13개</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="episode-card">
+            <div class="cover">
+              <img src="../../facttracer-next/public/images/news/facttracer-news-5.png" alt="경제 브리핑 커버" />
+              <button class="play-chip js-start" aria-label="경제 브리핑 재생" data-episode="rate" data-expand="false">
+                <i data-lucide="play"></i>
+              </button>
+            </div>
+            <div class="episode-body">
+              <div class="meta-row">
+                <span class="badge official">공식자료 포함</span>
+                <span class="badge changed">수치 변경</span>
+                <span class="badge">6분</span>
+              </div>
+              <h3>금리 동결, 기사마다 다른 숫자 비교</h3>
+              <p>발표문, 시장 반응, 기사 속 전망 수치를 분리해서 듣습니다.</p>
+              <div class="episode-footer">
+                <span>데일리 경제</span>
+                <span>출처 18개</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="episode-card">
+            <div class="cover">
+              <img src="../../facttracer-next/public/images/news/facttracer-news-6.png" alt="해외 이슈 해설 커버" />
+              <button class="play-chip js-start" aria-label="해외 이슈 해설 재생" data-episode="conflict" data-expand="false">
+                <i data-lucide="play"></i>
+              </button>
+            </div>
+            <div class="episode-body">
+              <div class="meta-row">
+                <span class="badge special">특집</span>
+                <span class="badge review">공식자료 대기</span>
+                <span class="badge">18분</span>
+              </div>
+              <h3>해외 분쟁 보도, 확인된 것과 추정인 것</h3>
+              <p>현장 보도, 정부 발표, 국제기구 자료의 차이를 구분합니다.</p>
+              <div class="episode-footer">
+                <span>3인 해설</span>
+                <span>출처 31개</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="episode-card">
+            <div class="cover">
+              <img src="../../facttracer-next/public/images/news/facttracer-news-7.png" alt="생활 뉴스 브리핑 커버" />
+              <button class="play-chip js-start" aria-label="생활 뉴스 브리핑 재생" data-episode="life" data-expand="false">
+                <i data-lucide="play"></i>
+              </button>
+            </div>
+            <div class="episode-body">
+              <div class="meta-row">
+                <span class="badge official">공식자료 포함</span>
+                <span class="badge">Q&A형</span>
+                <span class="badge">7분</span>
+              </div>
+              <h3>이번 주 생활 정책, 신청 전에 확인할 것</h3>
+              <p>지원 대상, 신청 기간, 언론 보도와 공고문의 차이를 묻고 답합니다.</p>
+              <div class="episode-footer">
+                <span>생활 Q&A</span>
+                <span>출처 11개</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section content-grid">
+        <div>
+          <div class="section-header">
+            <div>
+              <h2>깊게 듣는 특집</h2>
+              <p>큰 사건, 선거, 정책 논쟁은 하나의 시리즈로 묶입니다.</p>
+            </div>
+            <a class="section-link" href="#">특집관 <i data-lucide="chevron-right"></i></a>
+          </div>
+          <article class="wide-feature">
+            <img src="../../facttracer-next/public/images/news/facttracer-news-10.png" alt="선거 특집 커버" />
+            <div class="wide-feature-content">
+              <div>
+                <div class="meta-row">
+                  <span class="badge special">선거 특집</span>
+                  <span class="badge review">검증 중 포함</span>
+                  <span class="badge">시리즈 12편</span>
+                </div>
+                <h3>선거 기간, 숫자와 의혹을 어떻게 들어야 하나</h3>
+                <p>
+                  여론조사, 공약 재원, 투표 절차, 선관위 발표를 에피소드별로 나눠
+                  추적합니다.
+                </p>
+              </div>
+              <div class="stage-actions">
+                <button class="primary-button js-start" data-episode="special" data-expand="true">
+                  <i data-lucide="play"></i>
+                  1화 듣기
+                </button>
+                <button class="secondary-button">
+                  <i data-lucide="plus"></i>
+                  보관함
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <h2>카테고리 믹스</h2>
+                <p>정치, 경제, 해외, 생활을 듣는 목적에 맞춰 묶었습니다.</p>
+              </div>
+            </div>
+            <div class="category-grid">
+              <a class="category-tile" href="#">
+                <i data-lucide="landmark"></i>
+                <strong>정치</strong>
+                <span>쟁점 대화 24편</span>
+              </a>
+              <a class="category-tile" href="#">
+                <i data-lucide="chart-no-axes-column-increasing"></i>
+                <strong>경제</strong>
+                <span>데일리 16편</span>
+              </a>
+              <a class="category-tile" href="#">
+                <i data-lucide="globe-2"></i>
+                <strong>해외</strong>
+                <span>맥락 해설 19편</span>
+              </a>
+              <a class="category-tile" href="#">
+                <i data-lucide="newspaper"></i>
+                <strong>데일리</strong>
+                <span>오늘 8편 발행</span>
+              </a>
+            </div>
+          </section>
+        </div>
+
+        <aside>
+          <div class="section-header">
+            <div>
+              <h2>랭킹</h2>
+              <p>청취, 저장, 공유, 재생 완료율 기준</p>
+            </div>
+          </div>
+          <section class="rank-panel" aria-label="팟캐스트 랭킹">
+            <div class="rank-list">
+              <div class="rank-row">
+                <span class="rank-num">1</span>
+                <span>
+                  <strong>긴급 예산안, 쟁점은 어디서 갈렸나</strong>
+                  <span>2인 대화 · 11분 · 검증 중</span>
+                </span>
+                <button class="js-start" aria-label="랭킹 1위 재생" data-episode="budget" data-expand="false">
+                  <i data-lucide="play"></i>
+                </button>
+              </div>
+              <div class="rank-row">
+                <span class="rank-num">2</span>
+                <span>
+                  <strong>부동산 통계, 기사별 숫자 비교</strong>
+                  <span>1인 브리핑 · 6분 · 공식자료 포함</span>
+                </span>
+                <button class="js-start" aria-label="랭킹 2위 재생" data-episode="realestate" data-expand="false">
+                  <i data-lucide="play"></i>
+                </button>
+              </div>
+              <div class="rank-row">
+                <span class="rank-num">3</span>
+                <span>
+                  <strong>해외 규제 발표, 국내 영향 정리</strong>
+                  <span>3인 해설 · 14분 · 출처 20개</span>
+                </span>
+                <button class="js-start" aria-label="랭킹 3위 재생" data-episode="regulation" data-expand="false">
+                  <i data-lucide="play"></i>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-header">
+              <div>
+                <h2>방금 발행</h2>
+                <p>자동 생성, 자동 발행</p>
+              </div>
+            </div>
+            <div class="latest-panel">
+              <a class="latest-row js-start" href="#" data-episode="disaster" data-expand="false">
+                <img src="../../facttracer-next/public/images/news/facttracer-news-8.png" alt="최신 에피소드 커버" />
+                <span>
+                  <strong>공식자료가 추가된 재난 대응 브리핑</strong>
+                  <span>12분 전 · 수치 변경 있음</span>
+                </span>
+              </a>
+              <a class="latest-row js-start" href="#" data-episode="global" data-expand="false">
+                <img src="../../facttracer-next/public/images/news/facttracer-news-11.png" alt="최신 해외 에피소드 커버" />
+                <span>
+                  <strong>해외 정상 발언, 기사별 번역 차이</strong>
+                  <span>28분 전 · 출처 7개</span>
+                </span>
+              </a>
+              <a class="latest-row js-start" href="#" data-episode="election" data-expand="false">
+                <img src="../../facttracer-next/public/images/news/facttracer-news-0.png" alt="최신 정치 에피소드 커버" />
+                <span>
+                  <strong>정책 발표 이후 남은 확인 질문</strong>
+                  <span>41분 전 · 검증 중</span>
+                </span>
+              </a>
+            </div>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <div id="scrim" class="scrim" aria-hidden="true"></div>
+
+    <section id="player-drawer" class="player-drawer" aria-label="재생 상세 패널">
+      <div class="drawer-grip">
+        <span></span>
+      </div>
+
+      <div class="drawer-layout">
+        <article class="deck">
+          <div class="episode-art">
+            <img id="drawer-cover" src="../../facttracer-next/public/images/news/facttracer-news-9.png" alt="현재 재생 커버" />
+            <div class="art-copy">
+              <div id="drawer-badges" class="meta-row"></div>
+              <h2 id="drawer-title">오늘의 18분 팩트 큐</h2>
+              <p id="drawer-summary">관심 이슈와 공식자료 업데이트를 묶은 개인화 오디오입니다.</p>
+            </div>
+          </div>
+
+          <div class="deck-body">
+            <div class="setting-block">
+              <h3>재생 설정</h3>
+              <div class="chip-row" id="speed-row">
+                <button class="setting-chip" data-speed="0.8">0.8x</button>
+                <button class="setting-chip active" data-speed="1">1.0x</button>
+                <button class="setting-chip" data-speed="1.2">1.2x</button>
+                <button class="setting-chip" data-speed="1.5">1.5x</button>
+              </div>
+            </div>
+
+            <div class="setting-block">
+              <h3>듣는 방식</h3>
+              <div class="chip-row" id="format-row">
+                <button class="setting-chip active" data-format="auto">자동 선택</button>
+                <button class="setting-chip" data-format="brief">1인 브리핑</button>
+                <button class="setting-chip" data-format="dialogue">2인 대화</button>
+                <button class="setting-chip" data-format="panel">3인 해설</button>
+              </div>
+            </div>
+
+            <div class="setting-block">
+              <h3>현재 브리핑 기준</h3>
+              <ul id="fact-summary" class="fact-summary"></ul>
+            </div>
+          </div>
+        </article>
+
+        <section class="transcript">
+          <div class="transcript-head">
+            <div>
+              <h2>대사 스크립트</h2>
+              <p id="script-subtitle">재생 진행에 맞춰 현재 발화가 강조됩니다.</p>
+            </div>
+            <div class="stage-actions">
+              <button id="read-line" class="secondary-button">
+                <i data-lucide="volume-2"></i>
+                대사 읽기
+              </button>
+              <button id="jump-start" class="secondary-button">
+                <i data-lucide="rotate-ccw"></i>
+                처음부터
+              </button>
+            </div>
+          </div>
+          <div id="script-lines" class="script-scroll"></div>
+        </section>
+
+        <aside class="drawer-rail">
+          <section class="rail-section">
+            <div class="rail-head">
+              <div>
+                <h2>다음 재생</h2>
+                <p>이 패널 안에서 바로 다음 브리핑을 바꿉니다.</p>
+              </div>
+            </div>
+            <div id="drawer-queue" class="rail-list"></div>
+          </section>
+
+          <section class="rail-section">
+            <div class="rail-head">
+              <div>
+                <h2>출처와 검증 상태</h2>
+                <p>자동 발행이지만 근거를 숨기지 않습니다.</p>
+              </div>
+            </div>
+            <div id="source-list" class="source-list"></div>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <footer class="mini-player" aria-label="하단 재생바">
+      <div class="mini-progress">
+        <span id="mini-fill" class="mini-fill"></span>
+      </div>
+      <div class="mini-inner">
+        <button id="mini-info" class="mini-info" aria-label="재생 상세 열기">
+          <img id="mini-cover" src="../../facttracer-next/public/images/news/facttracer-news-9.png" alt="현재 재생 커버" />
+          <span>
+            <strong id="mini-title">오늘의 18분 팩트 큐</strong>
+            <span id="mini-subtitle">맞춤 추천 · 7개 이슈</span>
+          </span>
+        </button>
+
+        <div class="mini-controls">
+          <button id="prev-episode" class="round-control" aria-label="이전 에피소드">
+            <i data-lucide="skip-back"></i>
+          </button>
+          <button id="toggle-play" class="round-control main" aria-label="재생 또는 일시정지">
+            <i data-lucide="play"></i>
+          </button>
+          <button id="next-episode" class="round-control" aria-label="다음 에피소드">
+            <i data-lucide="skip-forward"></i>
+          </button>
+        </div>
+
+        <div class="mini-actions">
+          <span id="mini-time" class="mini-time">00:00 / 18:00</span>
+          <span class="badge official">공식자료 포함</span>
+          <button id="drawer-toggle" class="drawer-toggle" aria-label="재생 상세 열기">
+            <i data-lucide="chevron-up"></i>
+          </button>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const imageBase = "../../facttracer-next/public/images/news/";
+      const episodes = [
+        {
+          id: "daily",
+          title: "오늘의 18분 팩트 큐",
+          subtitle: "맞춤 추천 · 7개 이슈",
+          format: "1인 브리핑",
+          duration: 1080,
+          image: `${imageBase}facttracer-news-9.png`,
+          badges: ["공식자료 포함", "검증 중 명시", "스크립트 제공"],
+          summary: "관심 이슈, 저장한 사건, 오늘 바뀐 공식자료를 기준으로 구성된 개인화 오디오입니다.",
+          facts: [
+            "저장한 선거, 경제, 해외 이슈 중 오늘 업데이트된 항목을 우선 배치했습니다.",
+            "공식자료가 추가된 항목과 검증 중인 항목을 분리해 읽습니다.",
+            "각 에피소드는 출처 수, 형식, 검증 상태를 함께 제공합니다."
+          ],
+          sources: ["중앙선거관리위원회 공지", "한국은행 통계표", "외교부 정례브리핑", "FactTracer 자동 검증 로그"],
+          script: [
+            ["서윤", "진행자", 0, "민서님을 위한 오늘의 팩트 큐입니다. 오늘은 저장한 이슈 중 공식자료가 새로 붙은 항목부터 듣겠습니다."],
+            ["서윤", "진행자", 80, "첫 번째는 선거구 조정 논란입니다. 현재 확인된 것은 조정안 공개 일정과 회의록 일부이고, 책임 소재 주장은 아직 검증 중입니다."],
+            ["서윤", "진행자", 210, "두 번째는 물가 지표입니다. 기사마다 표현은 다르지만 공식 통계 기준으로는 전월 대비와 전년 대비를 구분해서 봐야 합니다."],
+            ["서윤", "진행자", 360, "세 번째는 해외 정상회의입니다. 각국 발표문이 서로 다른 부분을 강조하고 있어, 번역 표현과 실제 합의문을 나눠 확인합니다."],
+            ["서윤", "진행자", 620, "이 큐의 목적은 빠른 결론이 아니라 오늘 무엇이 확인됐고, 무엇이 아직 확인되지 않았는지 아는 것입니다."]
+          ]
+        },
+        {
+          id: "election",
+          title: "선거구 조정 논란, 오늘 바뀐 쟁점",
+          subtitle: "2인 대화 · 검증 중",
+          format: "2인 대화",
+          duration: 480,
+          image: `${imageBase}facttracer-news-0.png`,
+          badges: ["검증 중", "2인 대화", "출처 13개"],
+          summary: "선거구 조정 논란에서 오늘 새로 확인된 사실과 아직 충돌하는 주장을 대화형으로 정리합니다.",
+          facts: [
+            "공개된 회의 일정과 조정안 초안은 확인됐습니다.",
+            "특정 지역 유불리 주장은 아직 공식 근거와 연결되지 않았습니다.",
+            "다음 공식 회의록 공개 이후 판정이 바뀔 수 있습니다."
+          ],
+          sources: ["국회 회의 일정", "선관위 선거구 자료", "정당별 보도자료", "언론 기사 비교 8건"],
+          script: [
+            ["서윤", "진행자", 0, "오늘 선거구 조정 논란에서 바뀐 지점부터 보겠습니다. 먼저 확인된 사실은 조정안 초안과 회의 일정입니다."],
+            ["민재", "팩트체커", 62, "맞습니다. 다만 특정 지역에 유리하게 설계됐다는 주장은 아직 공식자료만으로는 확인되지 않습니다."],
+            ["서윤", "진행자", 128, "그러면 지금 시민이 알아야 할 핵심은 무엇인가요?"],
+            ["민재", "팩트체커", 174, "첫째, 초안은 확정안이 아닙니다. 둘째, 인구 기준과 행정구역 기준이 동시에 쓰입니다. 셋째, 다음 회의록이 나와야 발언 맥락을 확인할 수 있습니다."],
+            ["서윤", "진행자", 286, "정리하면 논란 자체는 실제로 있지만, 유불리 판단은 아직 검증 중이라는 점을 구분해야 합니다."]
+          ]
+        },
+        {
+          id: "economy",
+          title: "물가 지표와 체감 물가가 갈리는 이유",
+          subtitle: "3인 해설 · 공식자료 포함",
+          format: "3인 해설",
+          duration: 720,
+          image: `${imageBase}facttracer-news-1.png`,
+          badges: ["공식자료 포함", "3인 해설", "출처 18개"],
+          summary: "물가 지표, 체감 물가, 기사별 수치 차이를 세 역할의 해설로 분리합니다.",
+          facts: [
+            "공식 소비자물가지수와 생활물가지수는 계산 대상이 다릅니다.",
+            "전월 대비와 전년 대비 숫자를 섞으면 체감이 왜곡될 수 있습니다.",
+            "품목별 상승률은 전체 평균보다 크게 체감될 수 있습니다."
+          ],
+          sources: ["통계청 소비자물가동향", "한국은행 경제통계", "기획재정부 설명자료", "언론 기사 비교 11건"],
+          script: [
+            ["하린", "맥락 해설", 0, "오늘 물가 보도는 숫자 자체보다 숫자가 무엇을 뜻하는지가 중요합니다."],
+            ["민재", "팩트체커", 70, "공식 지표는 소비자물가지수입니다. 그런데 시민이 자주 사는 품목만 보면 생활물가지수의 움직임이 더 크게 느껴질 수 있습니다."],
+            ["서윤", "진행자", 142, "기사마다 물가가 안정됐다는 표현과 부담이 커졌다는 표현이 같이 보이는 이유도 여기에 있겠네요."],
+            ["하린", "맥락 해설", 220, "그렇습니다. 평균 지표와 특정 품목의 가격 경험이 다르기 때문입니다."],
+            ["민재", "팩트체커", 332, "따라서 오늘 기준으로 확인된 것은 전체 지표의 둔화이고, 체감 부담 완화는 품목별로 따로 봐야 합니다."]
+          ]
+        },
+        {
+          id: "global",
+          title: "해외 정상회의 5분 정리",
+          subtitle: "1인 브리핑 · 출처 9개",
+          format: "1인 브리핑",
+          duration: 300,
+          image: `${imageBase}facttracer-news-2.png`,
+          badges: ["출처 9개", "1인 브리핑", "번역 확인"],
+          summary: "정상회의 발표문과 국내 기사 표현 차이를 짧게 정리합니다.",
+          facts: [
+            "공동성명 원문과 각국 보도자료의 표현이 일부 다릅니다.",
+            "국내 기사 일부는 강한 표현을 제목에 사용했습니다.",
+            "합의의 법적 구속력은 문서별로 다릅니다."
+          ],
+          sources: ["공동성명 원문", "외교부 브리핑", "주요 외신 보도", "번역 비교 로그"],
+          script: [
+            ["서윤", "진행자", 0, "해외 정상회의 5분 정리입니다. 먼저 공동성명 원문과 국내 기사 제목을 나눠 보겠습니다."],
+            ["서윤", "진행자", 55, "확인된 것은 협력 방향에 대한 합의입니다. 다만 일부 제목처럼 즉시 강제력이 생긴다고 보기는 어렵습니다."],
+            ["서윤", "진행자", 125, "각국 보도자료는 자국 관심사를 중심으로 같은 문장을 다르게 강조했습니다."],
+            ["서윤", "진행자", 210, "오늘 결론은 간단합니다. 합의는 있었지만 적용 범위와 강도는 후속 문서를 기다려야 합니다."]
+          ]
+        },
+        {
+          id: "disaster",
+          title: "재난 문자 이후 확인된 사실",
+          subtitle: "업데이트 알림형 · 수치 변경",
+          format: "업데이트 알림형",
+          duration: 240,
+          image: `${imageBase}facttracer-news-3.png`,
+          badges: ["수치 변경", "공식자료 포함", "4분"],
+          summary: "재난 문자 발송 이후 바뀐 수치와 아직 확인 중인 현장 제보를 분리합니다.",
+          facts: [
+            "공식 집계 수치가 한 차례 수정됐습니다.",
+            "현장 제보 일부는 중복 신고로 확인됐습니다.",
+            "피해 범위는 추가 조사 이후 바뀔 수 있습니다."
+          ],
+          sources: ["지자체 재난안전대책본부", "소방청 브리핑", "현장 제보 검수 로그", "언론 기사 비교 6건"],
+          script: [
+            ["서윤", "진행자", 0, "재난 문자 이후 확인된 사실입니다. 가장 먼저 볼 것은 공식 집계 수치 변경입니다."],
+            ["민재", "팩트체커", 48, "초기 집계보다 숫자가 줄어든 이유는 중복 신고가 정리됐기 때문입니다."],
+            ["서윤", "진행자", 104, "현장 제보가 모두 틀렸다는 뜻은 아닙니다. 다만 공개 브리핑에는 확인된 집계와 제보를 분리해야 합니다."],
+            ["민재", "팩트체커", 170, "피해 범위는 다음 공식 발표에서 다시 바뀔 수 있습니다."]
+          ]
+        },
+        {
+          id: "special",
+          title: "선거 기간, 숫자와 의혹을 어떻게 들어야 하나",
+          subtitle: "선거 특집 · 시리즈 1화",
+          format: "3인 해설",
+          duration: 1020,
+          image: `${imageBase}facttracer-news-10.png`,
+          badges: ["선거 특집", "검증 중 포함", "시리즈 12편"],
+          summary: "선거 기간에 반복되는 여론조사, 공약 재원, 투표 절차 논란을 듣는 법을 특집으로 정리합니다.",
+          facts: [
+            "여론조사는 표본, 조사 방식, 공표 시점이 함께 표시되어야 합니다.",
+            "공약 재원 주장은 예산 항목과 집행 가능성을 나눠 봐야 합니다.",
+            "의혹 제기는 검증 가능한 질문으로 바뀔 때 공적 정보가 됩니다."
+          ],
+          sources: ["중앙선거여론조사심의위원회", "국회예산정책처", "선관위 투표 절차 안내", "FactTracer 선거 이슈 맵"],
+          script: [
+            ["서윤", "진행자", 0, "선거 특집 첫 번째 시간입니다. 숫자와 의혹이 많아질수록 무엇을 먼저 확인해야 하는지 보겠습니다."],
+            ["민재", "팩트체커", 95, "여론조사는 수치보다 조건이 중요합니다. 표본, 조사 방식, 공표 시점을 함께 봐야 합니다."],
+            ["하린", "맥락 해설", 190, "의혹은 무조건 배제할 것도, 그대로 믿을 것도 아닙니다. 검증 가능한 질문으로 바꾸는 과정이 필요합니다."],
+            ["서윤", "진행자", 330, "그러면 시민 입장에서 좋은 질문은 무엇일까요?"],
+            ["민재", "팩트체커", 405, "첫째, 어떤 원문이 있는가. 둘째, 날짜가 맞는가. 셋째, 반박 가능한 공식 기준이 있는가입니다."],
+            ["하린", "맥락 해설", 620, "팩트트레이서의 선거 특집은 바로 이 질문들을 에피소드별로 나눠 추적합니다."]
+          ]
+        }
+      ];
+
+      const generatedIds = ["assembly", "rate", "conflict", "life", "budget", "realestate", "regulation"];
+      generatedIds.forEach((id, index) => {
+        const base = episodes[index % episodes.length];
+        episodes.push({
+          ...base,
+          id,
+          title: {
+            assembly: "국회 표결 이후 남은 세 가지 쟁점",
+            rate: "금리 동결, 기사마다 다른 숫자 비교",
+            conflict: "해외 분쟁 보도, 확인된 것과 추정인 것",
+            life: "이번 주 생활 정책, 신청 전에 확인할 것",
+            budget: "긴급 예산안, 쟁점은 어디서 갈렸나",
+            realestate: "부동산 통계, 기사별 숫자 비교",
+            regulation: "해외 규제 발표, 국내 영향 정리"
+          }[id],
+          image: `${imageBase}facttracer-news-${(index + 4) % 12}.png`
+        });
+      });
+
+      const order = ["daily", "election", "economy", "global", "disaster", "special"];
+      const episodeMap = new Map(episodes.map((episode) => [episode.id, episode]));
+      const drawer = document.getElementById("player-drawer");
+      const scrim = document.getElementById("scrim");
+      const miniCover = document.getElementById("mini-cover");
+      const miniTitle = document.getElementById("mini-title");
+      const miniSubtitle = document.getElementById("mini-subtitle");
+      const miniTime = document.getElementById("mini-time");
+      const miniFill = document.getElementById("mini-fill");
+      const drawerCover = document.getElementById("drawer-cover");
+      const drawerTitle = document.getElementById("drawer-title");
+      const drawerSummary = document.getElementById("drawer-summary");
+      const drawerBadges = document.getElementById("drawer-badges");
+      const factSummary = document.getElementById("fact-summary");
+      const scriptLines = document.getElementById("script-lines");
+      const sourceList = document.getElementById("source-list");
+      const drawerQueue = document.getElementById("drawer-queue");
+      const togglePlay = document.getElementById("toggle-play");
+      const prevEpisode = document.getElementById("prev-episode");
+      const nextEpisode = document.getElementById("next-episode");
+      const readLine = document.getElementById("read-line");
+      const jumpStart = document.getElementById("jump-start");
+      const drawerToggle = document.getElementById("drawer-toggle");
+      const miniInfo = document.getElementById("mini-info");
+
+      let currentId = "daily";
+      let currentTime = 0;
+      let isPlaying = false;
+      let speed = 1;
+      let timer = null;
+
+      function episode() {
+        return episodeMap.get(currentId) || episodes[0];
+      }
+
+      function formatTime(seconds) {
+        const min = Math.floor(seconds / 60).toString().padStart(2, "0");
+        const sec = Math.floor(seconds % 60).toString().padStart(2, "0");
+        return `${min}:${sec}`;
+      }
+
+      function icon(name) {
+        return `<i data-lucide="${name}"></i>`;
+      }
+
+      function badgeClass(label) {
+        if (label.includes("공식")) return "official";
+        if (label.includes("검증") || label.includes("대기")) return "review";
+        if (label.includes("수치")) return "changed";
+        if (label.includes("특집") || label.includes("시리즈")) return "special";
+        return "";
+      }
+
+      function activeLineIndex(item) {
+        let index = 0;
+        item.script.forEach((line, lineIndex) => {
+          if (currentTime >= line[2]) index = lineIndex;
+        });
+        return index;
+      }
+
+      function updateProgress() {
+        const item = episode();
+        const pct = Math.min(100, (currentTime / item.duration) * 100);
+        miniFill.style.width = `${pct}%`;
+        miniTime.textContent = `${formatTime(currentTime)} / ${formatTime(item.duration)}`;
+        const activeIndex = activeLineIndex(item);
+        scriptLines.querySelectorAll(".line").forEach((line, index) => {
+          line.classList.toggle("active", index === activeIndex);
+          if (index === activeIndex && isPlaying && document.body.classList.contains("player-open")) {
+            line.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+        });
+      }
+
+      function renderEpisode() {
+        const item = episode();
+        miniCover.src = item.image;
+        miniTitle.textContent = item.title;
+        miniSubtitle.textContent = `${item.subtitle} · ${item.format}`;
+        drawerCover.src = item.image;
+        drawerTitle.textContent = item.title;
+        drawerSummary.textContent = item.summary;
+        drawerBadges.innerHTML = item.badges
+          .map((badge) => `<span class="badge ${badgeClass(badge)}">${badge}</span>`)
+          .join("");
+        factSummary.innerHTML = item.facts.map((fact) => `<li>${fact}</li>`).join("");
+        sourceList.innerHTML = item.sources
+          .map((source) => `
+            <div class="source-item">
+              <strong>${source}</strong>
+              <span>자동 대본 생성에 사용된 근거</span>
+            </div>
+          `)
+          .join("");
+        scriptLines.innerHTML = item.script
+          .map(([speaker, role, at, text], index) => `
+            <button class="line" data-line-index="${index}" data-at="${at}">
+              <span class="line-speaker">
+                <strong>${speaker}</strong>
+                <span>${role} · ${formatTime(at)}</span>
+              </span>
+              <p class="line-text">${text}</p>
+            </button>
+          `)
+          .join("");
+        drawerQueue.innerHTML = order
+          .filter((id) => id !== currentId)
+          .map((id) => {
+            const item = episodeMap.get(id);
+            return `
+              <button class="queue-item" data-queue-id="${id}">
+                <img src="${item.image}" alt="${item.title} 커버" />
+                <span>
+                  <strong>${item.title}</strong>
+                  <span>${item.subtitle} · ${formatTime(item.duration)}</span>
+                </span>
+                ${icon("play")}
+              </button>
+            `;
+          })
+          .join("");
+        drawerQueue.querySelectorAll("[data-queue-id]").forEach((button) => {
+          button.addEventListener("click", () => startEpisode(button.dataset.queueId, true));
+        });
+        scriptLines.querySelectorAll(".line").forEach((line) => {
+          line.addEventListener("click", () => {
+            currentTime = Number(line.dataset.at);
+            updateProgress();
+          });
+        });
+        updateProgress();
+        if (window.lucide) window.lucide.createIcons();
+      }
+
+      function setPlaying(next) {
+        isPlaying = next;
+        togglePlay.innerHTML = isPlaying ? icon("pause") : icon("play");
+        if (timer) window.clearInterval(timer);
+        if (isPlaying) {
+          timer = window.setInterval(() => {
+            const item = episode();
+            currentTime += speed * 2;
+            if (currentTime >= item.duration) {
+              currentTime = item.duration;
+              setPlaying(false);
+            }
+            updateProgress();
+          }, 1000);
+        }
+        if (window.lucide) window.lucide.createIcons();
+      }
+
+      function openDrawer() {
+        document.body.classList.add("player-open");
+      }
+
+      function closeDrawer() {
+        document.body.classList.remove("player-open");
+      }
+
+      function toggleDrawer() {
+        document.body.classList.toggle("player-open");
+      }
+
+      function startEpisode(id, expand) {
+        currentId = id || "daily";
+        currentTime = 0;
+        renderEpisode();
+        setPlaying(true);
+        if (expand) openDrawer();
+      }
+
+      function moveEpisode(direction) {
+        const index = Math.max(0, order.indexOf(currentId));
+        const nextIndex = (index + direction + order.length) % order.length;
+        startEpisode(order[nextIndex], true);
+      }
+
+      document.querySelectorAll(".js-start").forEach((target) => {
+        target.addEventListener("click", (event) => {
+          event.preventDefault();
+          startEpisode(target.dataset.episode || "daily", target.dataset.expand === "true");
+        });
+      });
+
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll(".tab").forEach((item) => item.classList.remove("active"));
+          tab.classList.add("active");
+        });
+      });
+
+      document.querySelectorAll("[data-speed]").forEach((button) => {
+        button.addEventListener("click", () => {
+          speed = Number(button.dataset.speed);
+          document.querySelectorAll("[data-speed]").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+        });
+      });
+
+      document.querySelectorAll("[data-format]").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("[data-format]").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          document.getElementById("script-subtitle").textContent =
+            button.dataset.format === "auto"
+              ? "재생 진행에 맞춰 현재 발화가 강조됩니다."
+              : `${button.textContent} 형식으로 다시 생성하는 설정 예시입니다.`;
+        });
+      });
+
+      scrim.addEventListener("click", closeDrawer);
+      drawerToggle.addEventListener("click", toggleDrawer);
+      miniInfo.addEventListener("click", openDrawer);
+      document.querySelector(".js-toggle-drawer").addEventListener("click", openDrawer);
+      togglePlay.addEventListener("click", () => setPlaying(!isPlaying));
+      prevEpisode.addEventListener("click", () => moveEpisode(-1));
+      nextEpisode.addEventListener("click", () => moveEpisode(1));
+      jumpStart.addEventListener("click", () => {
+        currentTime = 0;
+        updateProgress();
+        setPlaying(true);
+      });
+      readLine.addEventListener("click", () => {
+        const item = episode();
+        const line = item.script[activeLineIndex(item)];
+        if (!("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(line[3]);
+        utterance.lang = "ko-KR";
+        utterance.rate = speed;
+        window.speechSynthesis.speak(utterance);
+      });
+
+      renderEpisode();
+      if (window.lucide) window.lucide.createIcons();
+    </script>
+  </body>
+</html>

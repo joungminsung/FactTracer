@@ -1,0 +1,84 @@
+x-podcast-env: &podcast-env
+  FACTTRACER_PODCAST_GENERATION_ENABLED: "true"
+  FACTTRACER_PODCAST_GENERATION_INTERVAL_MINUTES: "60"
+  FACTTRACER_PODCAST_GENERATION_LIMIT: "6"
+  FACTTRACER_PODCAST_TTS_ENABLED: "true"
+  FACTTRACER_PODCAST_TTS_RENDER_ON_GENERATE: "true"
+  FACTTRACER_PODCAST_MIN_SOURCES_FOR_PUBLISH: "1"
+  FACTTRACER_PODCAST_MIN_PUBLISH_QUALITY_SCORE: "70"
+  FACTTRACER_PODCAST_SENSITIVE_TOPICS_REQUIRE_OFFICIAL_SOURCE: "true"
+  FACTTRACER_PODCAST_RECOMMENDATION_IMPACT_WEIGHT: "0.35"
+  FACTTRACER_PODCAST_RECOMMENDATION_VERIFICATION_WEIGHT: "0.25"
+  FACTTRACER_PODCAST_RECOMMENDATION_FRESHNESS_WEIGHT: "0.20"
+  FACTTRACER_PODCAST_RECOMMENDATION_CONTROVERSY_WEIGHT: "0.10"
+  FACTTRACER_PODCAST_RECOMMENDATION_MOMENTUM_WEIGHT: "0.10"
+  FACTTRACER_PODCAST_PERSONALIZATION_INTEREST_WEIGHT: "0.35"
+  FACTTRACER_PODCAST_TTS_PRONUNCIATION_LEXICON: ""
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: facttracer
+      POSTGRES_USER: facttracer
+      POSTGRES_PASSWORD: facttracer
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      <<: *podcast-env
+      FACTTRACER_DATABASE_URL: postgresql+psycopg://facttracer:facttracer@postgres:5432/facttracer
+      FACTTRACER_REDIS_URL: redis://redis:6379/0
+      FACTTRACER_WORKER_BACKEND: rq
+      FACTTRACER_CORS_ORIGINS: http://localhost:3002,http://127.0.0.1:3002
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - storage_data:/app/storage
+
+  worker:
+    build: .
+    env_file: .env
+    command: ["python", "scripts/run_rq_worker.py"]
+    environment:
+      <<: *podcast-env
+      FACTTRACER_DATABASE_URL: postgresql+psycopg://facttracer:facttracer@postgres:5432/facttracer
+      FACTTRACER_REDIS_URL: redis://redis:6379/0
+      FACTTRACER_WORKER_BACKEND: rq
+    depends_on:
+      - api
+      - redis
+    volumes:
+      - storage_data:/app/storage
+
+  scheduler:
+    build: .
+    env_file: .env
+    command: ["python", "scripts/run_scheduler.py"]
+    environment:
+      <<: *podcast-env
+      FACTTRACER_DATABASE_URL: postgresql+psycopg://facttracer:facttracer@postgres:5432/facttracer
+      FACTTRACER_REDIS_URL: redis://redis:6379/0
+      FACTTRACER_WORKER_BACKEND: rq
+    depends_on:
+      - api
+      - redis
+    volumes:
+      - storage_data:/app/storage
+
+volumes:
+  postgres_data:
+  storage_data:
